@@ -1,0 +1,67 @@
+Spring Security Annotations
+1. @Secured
+Annotated above a method to allow specific roles to access that method. No support of SpEL
+@Secured({"ROLE_ADMIN", "ROLE_USER"})
+@GetMapping("/home")
+public String home() {
+    return "Home Page";
+}
+
+2. @PreAuthorize
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/admin")
+public String admin() {
+    return "Admin Panel";
+}
+
+Before executing admin() method, the calling thread is checked if it has role = ADMIN 
+
+3. @PostAuthorize
+@PostAuthorize("returnObject.owner == authentication.name") //this is SpEL. not supported in @secured 
+public String getData() {
+    return "Secure Data";
+}
+
+Used to validate the returned object that its user is same as the user in  current thread's Security context's principal.
+
+4. @PreFilter
+@PreFilter("filterObject.owner == authentication.name")
+public void process(List<String> data) {
+    // filtered data is passed here
+}
+
+Annotation used for filtering objects in a java Collection before that Collection is passed to the process() method. Notice the Collection in the argument in the method.
+
+5. @PostFilter
+@PostFilter("filterObject.owner == authentication.name")
+public List<String> getAllData() {
+     return dataService.findAll();
+}
+
+Annotation used for filtering objects in a java Collection before that Collection is returned to the caller ensuring only authorized objects in the Collection are returned. Notice  the return type is a Collection.
+
+6. @RolesAllowed
+@RolesAllowed({"ROLE_ADMIN", "ROLE_EDITOR"})
+@GetMapping("/dashboard")
+public String dashboard() {
+      return "Dashboard";
+}
+
+It is not spring Security specific. Similar to @Secured 
+
+7. @AuthenticationPrincipal
+@GetMapping("/profile")
+public String profile(@AuthenticationPrincipal UserDetails user) {
+       return user.getUsername();
+}
+From the Security context holder, retrieved the context and retrieved the UserDetails object from the principal , the same is populated in UserDetails .
+
+8. RoleHierarchy
+@Bean
+public RoleHierarchy roleHierarchy() {
+RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
+hierarchy.setHierarchy("ROLE_ADMIN > ROLE_EDITOR > ROLE_USER");
+        return hierarchy;
+}
+
+No Annotation but a class which represent the hierarchy of the roles. 
